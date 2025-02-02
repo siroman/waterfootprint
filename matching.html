@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matching Game</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+    }
+
+    .stats {
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      grid-template-rows: repeat(4, 100px);
+      gap: 10px;
+      perspective: 1000px;
+    }
+
+    .card {
+      width: 100px;
+      height: 100px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.5s;
+      cursor: pointer;
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card .front,
+    .card .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+    }
+
+    .card .front {
+      background-color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform: rotateY(180deg);
+    }
+
+    .card .back {
+      background-color: #333;
+    }
+
+    img {
+      width: 80px;
+      height: 80px;
+      border-radius: 5px;
+    }
+
+    .reset-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="stats">
+    Tempo: <span id="timer">0</span> s | Mosse: <span id="moves">0</span>
+  </div>
+  <button class="reset-button" onclick="resetGame()">Reset</button>
+  <div class="game-board" id="gameBoard"></div>
+
+  <audio id="matchSound" src="https://www.fesliyanstudios.com/play-mp3/4383"></audio>
+
+  <script>
+    const randomSeeds = Array.from({ length: 8 }, () => Math.floor(Math.random() * 100));
+    const images = randomSeeds.map((val) => `https://picsum.photos/seed/${val}/200`);
+
+    let cards, flippedCards = [], matchedCards, moves = 0, timer = 0, timerInterval;
+    const gameBoard = document.getElementById('gameBoard');
+    const timerElement = document.getElementById('timer');
+    const movesElement = document.getElementById('moves');
+    const matchSound = document.getElementById('matchSound');
+
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timer++;
+        timerElement.textContent = timer;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function resetGame() {
+      stopTimer();
+      timer = 0;
+      moves = 0;
+      matchedCards = 0;
+      flippedCards = [];
+      timerElement.textContent = timer;
+      movesElement.textContent = moves;
+      gameBoard.innerHTML = '';
+      initializeGame();
+    }
+
+    function initializeGame() {
+      cards = [...images, ...images];
+      cards.sort(() => Math.random() - 0.5);
+
+      cards.forEach((image) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.image = image;
+
+        const front = document.createElement('div');
+        front.classList.add('front');
+        const img = document.createElement('img');
+        img.src = image;
+        front.appendChild(img);
+
+        const back = document.createElement('div');
+        back.classList.add('back');
+
+        card.appendChild(front);
+        card.appendChild(back);
+        gameBoard.appendChild(card);
+
+        card.addEventListener('click', () => {
+          if (!timerInterval) startTimer();
+
+          if (flippedCards.length < 2 && !flippedCards.includes(card) && !card.classList.contains('matched')) {
+            card.classList.add('flipped');
+            flippedCards.push(card);
+            moves++;
+            movesElement.textContent = moves;
+          }
+
+          if (flippedCards.length === 2) {
+            setTimeout(checkMatch, 800);
+          }
+        });
+      });
+    }
+
+    function checkMatch() {
+      if (flippedCards[0].dataset.image === flippedCards[1].dataset.image) {
+        flippedCards.forEach(card => card.classList.add('matched'));
+        matchedCards += 2;
+        matchSound.play();
+        if (matchedCards === cards.length) {
+          stopTimer();
+          alert(`Hai vinto! Tempo: ${timer} s, Mosse: ${moves}`);
+        }
+      } else {
+        flippedCards.forEach(card => card.classList.remove('flipped'));
+      }
+      flippedCards = [];
+    }
+
+    initializeGame();
+  </script>
+</body>
+
+</html>
