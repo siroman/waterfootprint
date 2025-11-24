@@ -9,7 +9,7 @@ function showMessage() {
   let doccia = document.getElementById('doccia').value;
   let famiglia = document.getElementById('famiglia').value;
   let docce = document.getElementById('docce').value;
-console.log(docce);
+  console.log(docce);
   let risultato = doccia * famiglia * docce;
   alert('La tua impronta idrica è: ' + risultato);
 }
@@ -25,4 +25,8 @@ window.onclick = function (event) {
   if (event.target == document.getElementById('popup')) {
     closePopup();
   }
+};
+
+window.onafterprint = () => {
+  return;
 };
